@@ -1,6 +1,6 @@
 
 
-class RemoteShell:
+class remoteShell:
 
     _BUFFER_SIZE = 2048
 

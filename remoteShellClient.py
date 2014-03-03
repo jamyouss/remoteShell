@@ -1,10 +1,10 @@
 #!/usr/bin/env python3.3
 
-from RemoteShell import RemoteShell
+from remoteShell import remoteShell
 
 import socket
 
-class RemoteShellClient:
+class remoteShellClient:
     """This is the remote shell client"""
 
     _host = None
@@ -34,7 +34,7 @@ class RemoteShellClient:
         while not exit:
             cmd = self.input()
 
-            if cmd == RemoteShell._EXIT:
+            if cmd == remoteShell._EXIT:
                 exit = True
                 self.send(cmd)
                 continue
@@ -51,7 +51,7 @@ class RemoteShellClient:
             try:
                 cmd = input('>> ')
             except (KeyboardInterrupt, SystemExit):
-                print("\n Enter '%s' to quit." % RemoteShell._EXIT)
+                print("\n Enter '%s' to quit." % remoteShell._EXIT)
 
         return cmd
 
@@ -61,25 +61,25 @@ class RemoteShellClient:
 
         while recv == True:
 
-            data = self._sock.recv(RemoteShell._BUFFER_SIZE).decode("utf-8")
+            data = self._sock.recv(remoteShell._BUFFER_SIZE).decode("utf-8")
 
-            if data.find(RemoteShell._END_FLAG) != -1:
+            if data.find(remoteShell._END_FLAG) != -1:
                 recv = False
 
             response = response+data
 
-        begin = response.find(RemoteShell._BEGIN_FLAG)
-        end = response.find(RemoteShell._END_FLAG)
+        begin = response.find(remoteShell._BEGIN_FLAG)
+        end = response.find(remoteShell._END_FLAG)
 
         response = response[begin:end]
-        response = response.replace(RemoteShell._BEGIN_FLAG, "")
+        response = response.replace(remoteShell._BEGIN_FLAG, "")
 
         return response
 
     def send(self, cmd):
-        self._sock.send(bytes(RemoteShell._BEGIN_FLAG, "utf-8"))
+        self._sock.send(bytes(remoteShell._BEGIN_FLAG, "utf-8"))
         self._sock.send(bytes(cmd, "utf-8"))
-        self._sock.send(bytes(RemoteShell._END_FLAG, "utf-8"))
+        self._sock.send(bytes(remoteShell._END_FLAG, "utf-8"))
 
     def quit(self):
         self._sock.close()
@@ -88,4 +88,4 @@ class RemoteShellClient:
 
 
 if __name__ == '__main__':
-    RemoteShellClient("127.0.0.1", 3465)
+    remoteShellClient("127.0.0.1", 3465)

@@ -1,19 +1,18 @@
 #!/usr/bin/env python3.3
 
-from RemoteShell import RemoteShell
+from remoteShell import remoteShell
 
 import socket
 import shlex
 import subprocess
 
-class RemoteShellServer:
+class remoteShellServer:
     """This is the remote shell server"""
 
     _host = None
     _port = None
     _sock = None
     _client = None
-    _clients = []
 
     def __init__(self, host, port):
         self._host = host
@@ -44,7 +43,6 @@ class RemoteShellServer:
             exit()
         else:
             self._client, address = self._sock.accept()
-            #self._clients.append({"sock": client, "host": address[0], "port": address[1]})
             self.loop()
 
     def loop(self):
@@ -53,14 +51,19 @@ class RemoteShellServer:
         while not exit:
             cmd = self.recv()
 
-            if cmd == RemoteShell._EXIT:
+            if cmd == remoteShell._EXIT:
                 exit = True
                 continue
             else:
                 args = shlex.split(cmd)
+                stdout, stderr = ("", "")
 
-                sub = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                stdout, stderr= sub.communicate()
+                try:
+                    sub = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                except OSError as e:
+                    stderr = bytes("%s: command not found" % cmd, 'utf-8')
+                else:
+                    stdout, stderr= sub.communicate()
 
                 self.send(stdout, stderr)
 
@@ -72,23 +75,23 @@ class RemoteShellServer:
 
         while recv == True:
 
-            data = self._client.recv(RemoteShell._BUFFER_SIZE).decode("utf-8")
+            data = self._client.recv(remoteShell._BUFFER_SIZE).decode("utf-8")
 
-            if data.find(RemoteShell._END_FLAG) != -1:
+            if data.find(remoteShell._END_FLAG) != -1:
                 recv = False
 
             response = response+data
 
-        begin = response.find(RemoteShell._BEGIN_FLAG)
-        end = response.find(RemoteShell._END_FLAG)
+        begin = response.find(remoteShell._BEGIN_FLAG)
+        end = response.find(remoteShell._END_FLAG)
 
         response = response[begin:end]
-        response = response.replace(RemoteShell._BEGIN_FLAG, "")
+        response = response.replace(remoteShell._BEGIN_FLAG, "")
 
         return response
 
     def send(self, stdout, stderr):
-        self._client.send(bytes(RemoteShell._BEGIN_FLAG, "utf-8"))
+        self._client.send(bytes(remoteShell._BEGIN_FLAG, "utf-8"))
 
         if stdout:
             self._client.send(stdout)
@@ -96,7 +99,7 @@ class RemoteShellServer:
         if stderr:
             self._client.send(stderr)
 
-        self._client.send(bytes(RemoteShell._END_FLAG, "utf-8"))
+        self._client.send(bytes(remoteShell._END_FLAG, "utf-8"))
 
     def quit(self):
         self._client.close()
@@ -104,4 +107,4 @@ class RemoteShellServer:
         exit()
 
 if __name__ == '__main__':
-    RemoteShellServer("127.0.0.1", 3465)
+    remoteShellServer("127.0.0.1", 3465)
